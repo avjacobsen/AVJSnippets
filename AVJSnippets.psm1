@@ -23,8 +23,6 @@ function Read-Host2 {
         [switch]
         $Required
     )
-    # Sanitycheck
-    if ($AsSecureString -and $AsEncryptedString) { throw "AsSecureString cannot be used in conjunction with AsEncryptedString." }
     if (!$Prompt -and $DefaultValue) { throw "Prompt required if DefaultValue is used." }
     if ($AsSecureString) {
         if ($DefaultValue -ne "") {
