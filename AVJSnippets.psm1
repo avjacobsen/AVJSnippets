@@ -1,4 +1,4 @@
-# Source: https://dev.azure.com/avjformula/AVJSnippets.psm1
+# Source: 
 
 <#
 .SYNOPSIS
