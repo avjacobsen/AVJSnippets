@@ -130,6 +130,7 @@ function Get-DecryptedString {
 <#
 .SYNOPSIS
     Writes log messages to log file. Log filename, if omitted, is equal to base name of script running it prefixed by date and suffixed by .log.
+    If function is run outside of a script, it simply writes to console instead of to file.
 #>
 function Write-LogMessage {
     param (
@@ -159,6 +160,9 @@ function Write-LogMessage {
     $MessagePrefix += ":{0:D2}" -f $CurrentDate.Second
     if ($Path -ne "") {
         Add-Content -Path $Path -Value "$($MessagePrefix)[$($MessageType)] $($Message)"
+    }
+    else {
+        Write-Host "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
     if ($VerbosePreference) {
         Write-Verbose "$($MessagePrefix)[$($MessageType)] $($Message)"
