@@ -8,7 +8,6 @@
     Require will force a non-blank value.
 #>
 function Read-Host2 {
-    # https://dev.azure.com/avjformula/Read-HostDefault/
     param (
         [Parameter()]
         [switch]
@@ -170,4 +169,41 @@ function Write-LogMessage {
     if ($DebugPreference) {
         Write-Debug "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
+}
+function Read-HostTime {
+    param (
+        [Parameter()]
+        [String]
+        $Year,
+        [Parameter()]
+        [String]
+        $Month,
+        [Parameter()]
+        [String]
+        $Day,
+        [Parameter()]
+        [String]
+        $Hour,
+        [Parameter()]
+        [String]
+        $Minute,
+        [Parameter()]
+        [String]
+        $Second
+    )
+    $DefaultDate = Get-Date -Millisecond 0
+    $NewYear = $DefaultDate.Year
+    $NewMonth = $DefaultDate.Month
+    $NewDay = $DefaultDate.Day
+    $NewHour = $DefaultDate.Hour
+    $NewMinute = $DefaultDate.Minute
+    $NewSecond = $DefaultDate.Second
+    if ($Year -eq "") { $NewYear = Read-Host2 -Prompt "Year" -DefaultValue $DefaultDate.Year } else { $NewYear = $Year }
+    if ($Month -eq "") { $NewMonth = Read-Host2 -Prompt "Month" -DefaultValue $DefaultDate.Month } else { $NewMonth = $Month }
+    if ($Day -eq "") { $NewDay = Read-Host2 -Prompt "Day" -DefaultValue $DefaultDate.Day } else { $NewDay = $Day }
+    if ($Hour -eq "") { $NewHour = Read-Host2 -Prompt "Hour" -DefaultValue $DefaultDate.Hour } else { $NewHour = $Hour }
+    if ($Minute -eq "") { $NewMinute = Read-Host2 -Prompt "Minute" -DefaultValue $DefaultDate.Minute } else { $NewMinute = $Minute }
+    if ($Second -eq "") { $NewSecond = Read-Host2 -Prompt "Second" -DefaultValue $DefaultDate.Second } else { $NewSecond = $Second }
+    $NewDate = Get-Date -Year $NewYear -Month $NewMonth -Day $NewDay -Hour $NewHour -Minute $NewMinute -Second $NewSecond -Millisecond 0
+    return $NewDate
 }
