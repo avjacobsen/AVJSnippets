@@ -167,7 +167,3 @@ function Write-LogMessage {
         Write-Debug "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
 }
-function Get-AVJSnippetInfo {
-    Write-Host $MyInvocation.ScriptName
-    Write-Host $PSCommandPath
-}
