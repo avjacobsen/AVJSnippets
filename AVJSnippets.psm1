@@ -129,7 +129,7 @@ function Get-DecryptedString {
 }
 <#
 .SYNOPSIS
-    Writes log messages to log file.
+    Writes log messages to log file. Log filename, if omitted, is equal to base name of script running it prefixed by date and suffixed by .log.
 #>
 function Write-LogMessage {
     param (
@@ -143,11 +143,20 @@ function Write-LogMessage {
         [String]
         $Path = ""
     )
-    if ($Path -eq "" -and $PSCommandPath -ne "") {
+    $CurrentDate = Get-Date
+    if ($Path -eq "" -and $MyInvocation.ScriptName -ne "") {
         # No path supplied but running from script. Setting path to script name.
-        $Path = "$(Get-Date -Format "yyyy")$(Get-Date -Format "MM")$(Get-Date -Format "dd")_$((Get-Item $PSCommandPath).BaseName).log"
+        $Path = "{0:D4}" -f $CurrentDate.Year
+        $Path += "{0:D2}" -f $CurrentDate.Month
+        $Path += "{0:D2}" -f $CurrentDate.Day
+        $Path += "_$((Get-Item $MyInvocation.ScriptName).BaseName).log"
     }
-    $MessagePrefix = "$(Get-Date -Format "yyyy").$(Get-Date -Format "MM").$(Get-Date -Format "dd") $(Get-Date -Format "HH"):$(Get-Date -Format "mm"):$(Get-Date -Format "ss") "
+    $MessagePrefix = "{0:D4}" -f $CurrentDate.Year
+    $MessagePrefix += ".{0:D2}" -f $CurrentDate.Month
+    $MessagePrefix += ".{0:D2}" -f $CurrentDate.Day
+    $MessagePrefix += " {0:D2}" -f $CurrentDate.Hour
+    $MessagePrefix += ":{0:D2}" -f $CurrentDate.Minute
+    $MessagePrefix += ":{0:D2}" -f $CurrentDate.Second
     if ($Path -ne "") {
         Add-Content -Path $Path -Value "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
@@ -159,6 +168,6 @@ function Write-LogMessage {
     }
 }
 function Get-AVJSnippetInfo {
-    return $MyInvocation.ScriptName
-    return $PSCommandPath
+    Write-Host $MyInvocation.ScriptName
+    Write-Host $PSCommandPath
 }
