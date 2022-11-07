@@ -158,7 +158,9 @@ function Write-LogMessage {
     $MessagePrefix += ":{0:D2}" -f $CurrentDate.Minute
     $MessagePrefix += ":{0:D2}" -f $CurrentDate.Second
     if ($Path -ne "") {
-        Add-Content -Path $Path -Value "$($MessagePrefix)[$($MessageType)] $($Message)"
+        # Set-Content/Add-Content is not used because of unhandled exceptions that are thrown outside the function,
+        # preventing the function itself to catch it.
+        [System.IO.File]::AppendAllText($Path,"$($MessagePrefix)[$($MessageType)] $($Message)`n")
     }
     else {
         Write-Host "$($MessagePrefix)[$($MessageType)] $($Message)"
