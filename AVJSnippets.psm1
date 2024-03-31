@@ -2,6 +2,41 @@
 
 <#
 .SYNOPSIS
+    Converts an encrypted string to a plain text string.
+#>
+function Get-DecryptedString {
+    param (
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true,
+            HelpMessage = "Encrypted string value to decrypt.")]
+        [String]
+        $EncryptedString
+    )
+    # Get Password from encrypted string
+    $SecureString = $EncryptedString | ConvertTo-SecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+    $PlainTextString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    return $PlainTextString
+}
+<#
+.SYNOPSIS
+    Converts a plain text string to an encrypted string.
+    >>> SECURITY WARNING <<<
+    The function takes a plain text string as an argument, that may be intercepted. Use at your own risk.
+#>
+function Get-EncryptedString {
+    param (
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true,
+            HelpMessage = "String value to encrypt.")]
+        [String]
+        $String
+    )
+    $EncryptedString = ConvertTo-SecureString -String $String -AsPlainText -Force | ConvertFrom-SecureString
+    return $EncryptedString
+}
+<#
+.SYNOPSIS
     Read-Host enhancements.
 
     DefaultValue will let you set a default value, in case input is blank.
@@ -91,40 +126,42 @@ function Read-Host2 {
     }
     return $null
 }
-<#
-.SYNOPSIS
-    Converts a plain text string to an encrypted string.
-    >>> SECURITY WARNING <<<
-    The function takes a plain text string as an argument, that may be intercepted. Use at your own risk.
-#>
-function Get-EncryptedString {
+function Read-HostTime {
     param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipeline = $true,
-            HelpMessage = "String value to encrypt.")]
+        [Parameter()]
         [String]
-        $String
-    )
-    $EncryptedString = ConvertTo-SecureString -String $String -AsPlainText -Force | ConvertFrom-SecureString
-    return $EncryptedString
-}
-<#
-.SYNOPSIS
-    Converts an encrypted string to a plain text string.
-#>
-function Get-DecryptedString {
-    param (
-        [Parameter(Mandatory = $true,
-            ValueFromPipeline = $true,
-            HelpMessage = "Encrypted string value to decrypt.")]
+        $Year,
+        [Parameter()]
         [String]
-        $EncryptedString
+        $Month,
+        [Parameter()]
+        [String]
+        $Day,
+        [Parameter()]
+        [String]
+        $Hour,
+        [Parameter()]
+        [String]
+        $Minute,
+        [Parameter()]
+        [String]
+        $Second
     )
-    # Get Password from encrypted string
-    $SecureString = $EncryptedString | ConvertTo-SecureString
-    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
-    $PlainTextString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-    return $PlainTextString
+    $DefaultDate = Get-Date -Millisecond 0
+    $NewYear = $DefaultDate.Year
+    $NewMonth = $DefaultDate.Month
+    $NewDay = $DefaultDate.Day
+    $NewHour = $DefaultDate.Hour
+    $NewMinute = $DefaultDate.Minute
+    $NewSecond = $DefaultDate.Second
+    if ($Year -eq "") { $NewYear = Read-Host2 -Prompt "Year" -DefaultValue $DefaultDate.Year } else { $NewYear = $Year }
+    if ($Month -eq "") { $NewMonth = Read-Host2 -Prompt "Month" -DefaultValue $DefaultDate.Month } else { $NewMonth = $Month }
+    if ($Day -eq "") { $NewDay = Read-Host2 -Prompt "Day" -DefaultValue $DefaultDate.Day } else { $NewDay = $Day }
+    if ($Hour -eq "") { $NewHour = Read-Host2 -Prompt "Hour" -DefaultValue $DefaultDate.Hour } else { $NewHour = $Hour }
+    if ($Minute -eq "") { $NewMinute = Read-Host2 -Prompt "Minute" -DefaultValue $DefaultDate.Minute } else { $NewMinute = $Minute }
+    if ($Second -eq "") { $NewSecond = Read-Host2 -Prompt "Second" -DefaultValue $DefaultDate.Second } else { $NewSecond = $Second }
+    $NewDate = Get-Date -Year $NewYear -Month $NewMonth -Day $NewDay -Hour $NewHour -Minute $NewMinute -Second $NewSecond -Millisecond 0
+    return $NewDate
 }
 <#
 .SYNOPSIS
@@ -171,41 +208,4 @@ function Write-LogMessage {
     if ($DebugPreference) {
         Write-Debug "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
-}
-function Read-HostTime {
-    param (
-        [Parameter()]
-        [String]
-        $Year,
-        [Parameter()]
-        [String]
-        $Month,
-        [Parameter()]
-        [String]
-        $Day,
-        [Parameter()]
-        [String]
-        $Hour,
-        [Parameter()]
-        [String]
-        $Minute,
-        [Parameter()]
-        [String]
-        $Second
-    )
-    $DefaultDate = Get-Date -Millisecond 0
-    $NewYear = $DefaultDate.Year
-    $NewMonth = $DefaultDate.Month
-    $NewDay = $DefaultDate.Day
-    $NewHour = $DefaultDate.Hour
-    $NewMinute = $DefaultDate.Minute
-    $NewSecond = $DefaultDate.Second
-    if ($Year -eq "") { $NewYear = Read-Host2 -Prompt "Year" -DefaultValue $DefaultDate.Year } else { $NewYear = $Year }
-    if ($Month -eq "") { $NewMonth = Read-Host2 -Prompt "Month" -DefaultValue $DefaultDate.Month } else { $NewMonth = $Month }
-    if ($Day -eq "") { $NewDay = Read-Host2 -Prompt "Day" -DefaultValue $DefaultDate.Day } else { $NewDay = $Day }
-    if ($Hour -eq "") { $NewHour = Read-Host2 -Prompt "Hour" -DefaultValue $DefaultDate.Hour } else { $NewHour = $Hour }
-    if ($Minute -eq "") { $NewMinute = Read-Host2 -Prompt "Minute" -DefaultValue $DefaultDate.Minute } else { $NewMinute = $Minute }
-    if ($Second -eq "") { $NewSecond = Read-Host2 -Prompt "Second" -DefaultValue $DefaultDate.Second } else { $NewSecond = $Second }
-    $NewDate = Get-Date -Year $NewYear -Month $NewMonth -Day $NewDay -Hour $NewHour -Minute $NewMinute -Second $NewSecond -Millisecond 0
-    return $NewDate
 }
