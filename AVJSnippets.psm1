@@ -209,3 +209,9 @@ function Write-LogMessage {
         Write-Debug "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
 }
+function Get-RDSDeniedStatus {
+    $KeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\'
+    $ValueName = 'fDenyTSConnections'
+    $Value = (Get-Item -Path $KeyPath).GetValue($ValueName)
+    return $Value
+}
