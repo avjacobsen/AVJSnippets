@@ -209,9 +209,51 @@ function Write-LogMessage {
         Write-Debug "$($MessagePrefix)[$($MessageType)] $($Message)"
     }
 }
-function Get-RDSDeniedStatus {
+function Get-RDSDenyTSConnections {
     $KeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\'
     $ValueName = 'fDenyTSConnections'
     $Value = (Get-Item -Path $KeyPath).GetValue($ValueName)
     return $Value
+}
+function Set-RDSDenyTSConnections {
+    param([switch]$Enabled, [switch]$Disabled, [switch]$NotConfigured)
+    $KeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\'
+    $ValueName = 'fDenyTSConnections'
+    if ($Enabled) {
+        Set-ItemProperty -Path $KeyPath -Name $ValueName -Value 1
+    }
+    else {
+        if ($Disabled) {
+            Set-ItemProperty -Path $KeyPath -Name $ValueName -Value 0
+        }
+        else {
+            if ($NotConfigured) {
+                Remove-ItemProperty -Path $KeyPath -Name $ValueName
+            }
+        }
+    }
+}
+function Get-RDSSingleSessionPerUser {
+    $KeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\'
+    $ValueName = 'fSingleSessionPerUser'
+    $Value = (Get-Item -Path $KeyPath).GetValue($ValueName)
+    return $Value
+}
+function Set-RDSSingleSessionPerUser {
+    param([switch]$Enabled, [switch]$Disabled, [switch]$NotConfigured)
+    $KeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\'
+    $ValueName = 'fSingleSessionPerUser'
+    if ($Enabled) {
+        Set-ItemProperty -Path $KeyPath -Name $ValueName -Value 1
+    }
+    else {
+        if ($Disabled) {
+            Set-ItemProperty -Path $KeyPath -Name $ValueName -Value 0
+        }
+        else {
+            if ($NotConfigured) {
+                Remove-ItemProperty -Path $KeyPath -Name $ValueName
+            }
+        }
+    }
 }
