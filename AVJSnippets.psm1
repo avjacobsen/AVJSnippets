@@ -257,3 +257,84 @@ function Set-RDSSingleSessionPerUser {
         }
     }
 }
+
+function Get-RandomPassword {
+    Param(
+        [Parameter(Mandatory=$false)][ValidateRange(1,2048)][UInt32] $Length = 16,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeNonAlphaNumericCharacters = $false,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeUpperCaseCharacters = $true,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeLowerCaseCharacters = $true,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeNumbers = $true,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeSimilarCharacters = $false,
+        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeExclamationMark = $true
+    )
+
+    $NonAlphaNumericCharacters = '!', '"', '#', '$', '''', '%', '&', '/', '(', ')', '=', '+', '?', '-', '_', '<', '>', '*', ',', '.', ':', ';', '@', '[', ']', '^', '{', '|', '}'
+    $UpperCaseCharacters = 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    $LowerCaseCharacters = 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+    $Numbers = '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+    $SimilarCharacters = 'i', 'l', 'o', 'I', 'O', '0', '|', ',', '.'
+    $ExclamationMark = @('!');
+
+    # Determine minimum length based on parameters supplied
+    $MinimumLength = 0;
+    if ($IncludeNonAlphaNumericCharacters) { $MinimumLength += 1 }
+    if ($IncludeUpperCaseCharacters) { $MinimumLength += 1 }
+    if ($IncludeLowerCaseCharacters) { $MinimumLength += 1 }
+    if ($IncludeNumbers) { $MinimumLength += 1 }
+    if ($IncludeExclamationMark) { $MinimumLength += 1 }
+    if ($Length -lt 1 -or $Length -lt $MinimumLength) { "Length too short."; return $null }
+
+    # Define control variables to make sure at least one of these characters gets inserted into generated password
+    if ($IncludeNonAlphaNumericCharacters) { $NonAlphaNumericCharactersNeeded = $true } else { $NonAlphaNumericCharactersNeeded = $false }
+    if ($IncludeUpperCaseCharacters) { $UpperCaseCharactersNeeded = $true } else { $UpperCaseCharactersNeeded = $false }
+    if ($IncludeLowerCaseCharacters) { $LowerCaseCharactersNeeded = $true } else { $LowerCaseCharactersNeeded = $false }
+    if ($IncludeNumbers) { $NumbersNeeded = $true } else { $NumbersNeeded = $false }
+    if ($IncludeExclamationMark) { $ExclamationMarkNeeded = $true } else { $ExclamationMarkNeeded = $false }
+
+    for ($i = 0; $i -lt $Length; $i++) {
+        # Whenever $NeededCharactersCount is equal to remaining characters to generate, you MUST generate a required character that hasn't yet been generated.
+        $NeededCharactersCount = 0
+        if ($NonAlphaNumericCharactersNeeded) { $NeededCharactersCount += 1 }
+        if ($UpperCaseCharactersNeeded) { $NeededCharactersCount += 1 }
+        if ($LowerCaseCharactersNeeded) { $NeededCharactersCount += 1 }
+        if ($NumbersNeeded) { $NeededCharactersCount += 1 }
+        if ($ExclamationMarkNeeded) { $NeededCharactersCount += 1 }
+        $CharactersToChooseFrom = $null
+        if ($NeededCharactersCount -eq ($Length - $i)) {
+            # Generate a needed character
+            if ($IncludeNonAlphaNumericCharacters -and $NonAlphaNumericCharactersNeeded) { $CharactersToChooseFrom += $NonAlphaNumericCharacters }
+            if ($IncludeUpperCaseCharacters -and $UpperCaseCharactersNeeded) { $CharactersToChooseFrom += $UpperCaseCharacters }
+            if ($IncludeLowerCaseCharacters -and $LowerCaseCharactersNeeded) { $CharactersToChooseFrom += $LowerCaseCharacters }
+            if ($IncludeNumbers -and $NumbersNeeded) { $CharactersToChooseFrom += $Numbers }
+            if ($IncludeExclamationMark -and $ExclamationMarkNeeded) { $CharactersToChooseFrom += $ExclamationMark }
+        }
+        else {
+            # Generate any character
+            if ($IncludeNonAlphaNumericCharacters) { $CharactersToChooseFrom += $NonAlphaNumericCharacters }
+            if ($IncludeUpperCaseCharacters) { $CharactersToChooseFrom += $UpperCaseCharacters }
+            if ($IncludeLowerCaseCharacters) { $CharactersToChooseFrom += $LowerCaseCharacters }
+            if ($IncludeNumbers) { $CharactersToChooseFrom += $Numbers }
+            if ($IncludeExclamationMark) { $CharactersToChooseFrom += $ExclamationMark }
+        }
+        # Remove similar characters
+        if ($IncludeSimilarCharacters -eq $false) {
+            $NonSimilarCharactersToChooseFrom = @()
+            foreach ($character in $CharactersToChooseFrom) {
+                if ($SimilarCharacters.Contains($character) -eq $false) { $NonSimilarCharactersToChooseFrom += $character }
+            }
+            $CharactersToChooseFrom = $NonSimilarCharactersToChooseFrom
+        }
+        $CharactersToChooseFromLength = $CharactersToChooseFrom.Length
+            $CharacterNumberChosen = Get-Random -Minimum 0 -Maximum $CharactersToChooseFromLength
+        $CharacterChosen = $CharactersToChooseFrom[$CharacterNumberChosen]
+        if ($NonAlphaNumericCharacters.Contains($CharacterChosen)) { $NonAlphaNumericCharactersNeeded = $false }
+        if ($UpperCaseCharacters.Contains($CharacterChosen)) { $UpperCaseCharactersNeeded = $false }
+        if ($LowerCaseCharacters.Contains($CharacterChosen)) { $LowerCaseCharactersNeeded = $false }
+        if ($Numbers.Contains($CharacterChosen)) { $NumbersNeeded = $false }
+        if ($ExclamationMark.Contains($CharacterChosen)) { $ExclamationMarkNeeded = $false }
+        $GeneratedPassword += $CharacterChosen
+    }
+
+    return $GeneratedPassword
+}
