@@ -197,7 +197,7 @@ function Write-LogMessage {
     if ($Path -ne "") {
         # Set-Content/Add-Content is not used because of unhandled exceptions that are thrown outside the function,
         # preventing the function itself to catch it.
-        [System.IO.File]::AppendAllText($Path,"$($MessagePrefix)[$($MessageType)] $($Message)`n")
+        [System.IO.File]::AppendAllText($Path, "$($MessagePrefix)[$($MessageType)] $($Message)`n")
     }
     else {
         Write-Host "$($MessagePrefix)[$($MessageType)] $($Message)"
@@ -260,13 +260,13 @@ function Set-RDSSingleSessionPerUser {
 
 function Get-RandomPassword {
     Param(
-        [Parameter(Mandatory=$false)][ValidateRange(1,2048)][UInt32] $Length = 16,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeNonAlphaNumericCharacters = $false,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeUpperCaseCharacters = $true,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeLowerCaseCharacters = $true,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeNumbers = $true,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeSimilarCharacters = $false,
-        [Parameter(Mandatory=$false)][ValidateSet($true, $false)][switch]$IncludeExclamationMark = $true
+        [Parameter(Mandatory = $false)][ValidateRange(1, 2048)][UInt32] $Length = 16,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeNonAlphaNumericCharacters = $false,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeUpperCaseCharacters = $true,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeLowerCaseCharacters = $true,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeNumbers = $true,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeSimilarCharacters = $false,
+        [Parameter(Mandatory = $false)][ValidateSet($true, $false)][switch]$IncludeExclamationMark = $true
     )
 
     $NonAlphaNumericCharacters = '!', '"', '#', '$', '''', '%', '&', '/', '(', ')', '=', '+', '?', '-', '_', '<', '>', '*', ',', '.', ':', ';', '@', '[', ']', '^', '{', '|', '}'
@@ -326,7 +326,7 @@ function Get-RandomPassword {
             $CharactersToChooseFrom = $NonSimilarCharactersToChooseFrom
         }
         $CharactersToChooseFromLength = $CharactersToChooseFrom.Length
-            $CharacterNumberChosen = Get-Random -Minimum 0 -Maximum $CharactersToChooseFromLength
+        $CharacterNumberChosen = Get-Random -Minimum 0 -Maximum $CharactersToChooseFromLength
         $CharacterChosen = $CharactersToChooseFrom[$CharacterNumberChosen]
         if ($NonAlphaNumericCharacters.Contains($CharacterChosen)) { $NonAlphaNumericCharactersNeeded = $false }
         if ($UpperCaseCharacters.Contains($CharacterChosen)) { $UpperCaseCharactersNeeded = $false }
@@ -337,4 +337,36 @@ function Get-RandomPassword {
     }
 
     return $GeneratedPassword
+}
+
+function Get-RandomIPv6InternalAddress {
+    # Generate 64-bit value for IPv6-style output:
+    # - First byte fixed to 7D
+    # - Remaining 7 bytes random
+
+    # Create 8-byte buffer
+    $bytes = New-Object byte[] 8
+
+    # Fill all bytes with cryptographically secure random values
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $rng.GetBytes($bytes)
+
+    # Fix the first byte
+    $bytes[0] = 0x7D
+
+    # Convert to hex
+    $hexString = ($bytes | ForEach-Object { $_.ToString("X2") }) -join ""
+
+    # Group as IPv6-style blocks
+    $ipv6Part = ($hexString -split '(.{4})' | Where-Object { $_ -ne "" }) -join ":"
+
+    Write-Output "This string should suffice in creating an IPv6 address for internal use."
+    Write-Output "RFC4193 Unique Unicast IP range is fc00::/7, which this script is based upon."
+    Write-Output "It defines the first byte as FD and the rest of the 7 bytes randomly."
+    Write-Output "Common practice is to append mac address to the last part of the IPv6 address."
+    Write-Output "Prefix        : $(-join $hexString[0..1])"
+    Write-Output "Global ID     : $(-join $hexString[2..11])"
+    Write-Output "Subnet ID     : $(-join $hexString[12..15])"
+    Write-Output "Combined/CID  : $($ipv6Part)::/64"
+    Write-Output "IPv6 Addresses: $($ipv6Part):xxxx:xxxx:xxxx:xxxx"
 }
